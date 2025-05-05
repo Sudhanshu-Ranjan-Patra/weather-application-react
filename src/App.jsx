@@ -11,6 +11,9 @@ const App = () => {
   const[loading, setLoading] = useState(false);
   const[error, setError] = useState(null);
 
+  // State to hold forecast data
+  const [forecastData, setforecastData] = useState([]);
+
   // Detect Users Location using Geolocation
   const getCityFromCoords = async () => {
     try {
@@ -39,14 +42,14 @@ const App = () => {
     setWeatherData(null);
 
     try{
-      const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
+      const res = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
         params: {
           q: city,
           appid: 'e23358e3c4c2969a6e698af7623ef645',
           units: 'metric',
         },
       });
-      setWeatherData(response.data);
+      setWeatherData(res.data);
     } catch (err) {
       setError('Could not fetch weather data. Please check the city name.');
     } finally {
@@ -67,24 +70,52 @@ const App = () => {
     }
   };
 
+  // Fetch 5-day forecast
+  const fetchForecast = async () => {
+    try{
+      const res = await axios.get(`https://api.openweathermap.org/data/2.5/forecast`, {
+        params: {
+          q: city,
+          appid: 'e23358e3c4c2969a6e698af7623ef645',
+          units: 'metric',
+        },
+      });
+      // Get forecast for every 24 hours (every 8th item in 3-hour steps)
+      const daily = res.data.list.filter((_, index) => index % 8 === 0);
+      setForecastData(daily);
+    } catch (err){
+      console.error("Failed to fetch forecast", err);
+    }
+  };
+
   // Fetch weather data on initial load and whenever the city changes
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(async (position) => {
       const { latitude, longitude } = position.coords;
-      const detectedCity = await getCityFromCoords(latitude,longitude);
+      const detectedCity = await getCityFromCoords(latitude, longitude);
       if(detectedCity){
         setCity(detectedCity);
+        await fetchWeather(detectedCity);
+        await fetchForecast(detectedCity);
       }
-    },(error) => {
+    },
+    async (error) => {
       console.warn("Geolocation permission denied, using default city.");
-      fetchWeather();
+      await fetchWeather(city);
+      await fetchForecast(city);
     });
   }, []);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       fetchWeather();
+      fetchForecast();
     }
+  };
+
+  const handleSearch = () => {
+    fetchWeather();
+    fetchForecast();
   };
 
   return (
@@ -104,7 +135,7 @@ const App = () => {
         placeholder="Enter City"
       />
       <button
-          onClick={fetchWeather}
+          onClick={handleSearch}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
         >
           Search
@@ -136,6 +167,23 @@ const App = () => {
           <p className="text-sm text-gray-500">
             Feels like: {weatherData.main.feels_like}°C
           </p>
+        </div>
+      )}
+
+      {forecastData.length > 0 && (
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-5 gap-4">
+          {forecastData.map((item, index) => (
+            <div key={index} className="bg-white p-4 rounded shadow text-center">
+              <p className="font-semibold">{new Date(item.dt_txt).toLocaleDateString()}</p>
+              <img 
+                src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`} 
+                alt="icon" 
+                className="mx-auto w-12 h-12"
+              />
+              <p>{item.weather[0].main}</p>
+              <p>{item.main.temp}°C</p>
+            </div>
+          ))}
         </div>
       )}
     </div> 

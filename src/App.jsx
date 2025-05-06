@@ -121,7 +121,7 @@ const App = () => {
   return (
     <div className={`p-8 min-h-screen flex flex-col items-center justify-center transition-colors duration-1000 ${getBackgroundClass(weatherData?.weather[0]?.main)}`}>
       <h1 className="text-3xl font-semibold mb-6">
-        Weather Application 🌤️
+        Weather Application 🌤️ 
       </h1>
 
     <div className="flex gap-4 mb-4">

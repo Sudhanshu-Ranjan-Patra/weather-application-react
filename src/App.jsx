@@ -12,10 +12,10 @@ const App = () => {
   const[error, setError] = useState(null);
 
   // State to hold forecast data
-  const [forecastData, setforecastData] = useState([]);
+  const [forecastData, setForecastData] = useState([]);
 
   // Detect Users Location using Geolocation
-  const getCityFromCoords = async () => {
+  const getCityFromCoords = async (lat, lon) => {
     try {
       const res = await axios.get(`https://api.openweathermap.org/geo/1.0/reverse`, {
         params: {
@@ -101,8 +101,8 @@ const App = () => {
     },
     async (error) => {
       console.warn("Geolocation permission denied, using default city.");
-      await fetchWeather(city);
-      await fetchForecast(city);
+      await fetchWeather(detectedCity);
+      await fetchForecast(detectedCity);
     });
   }, []);
 
@@ -169,7 +169,7 @@ const App = () => {
           </p>
         </div>
       )}
-
+      <div className="mt-5 text-2xl text-blue-400 ">Future-Data-Prediction</div>
       {forecastData.length > 0 && (
         <div className="mt-8 grid grid-cols-1 md:grid-cols-5 gap-4">
           {forecastData.map((item, index) => (

@@ -71,22 +71,23 @@ const App = () => {
   };
 
   // Fetch 5-day forecast
-  const fetchForecast = async () => {
-    try{
+  const fetchForecast = async (customCity = city) => {
+    try {
       const res = await axios.get(`https://api.openweathermap.org/data/2.5/forecast`, {
         params: {
-          q: city,
+          q: customCity,
           appid: 'e23358e3c4c2969a6e698af7623ef645',
           units: 'metric',
         },
       });
-      // Get forecast for every 24 hours (every 8th item in 3-hour steps)
       const daily = res.data.list.filter((_, index) => index % 8 === 0);
       setForecastData(daily);
-    } catch (err){
+    } catch (err) {
       console.error("Failed to fetch forecast", err);
+      setForecastData([]); // <-- Clear forecast data on failure
     }
   };
+  
 
   // Fetch weather data on initial load and whenever the city changes
   useEffect(() => {
@@ -170,20 +171,20 @@ const App = () => {
         </div>
       )}
       <div className="mt-5 text-2xl text-blue-400 ">Future-Data-Prediction</div>
-      {forecastData.length > 0 && (
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-5 gap-4">
-          {forecastData.map((item, index) => (
-            <div key={index} className="bg-white p-4 rounded shadow text-center">
-              <p className="font-semibold">{new Date(item.dt_txt).toLocaleDateString()}</p>
-              <img 
-                src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`} 
-                alt="icon" 
-                className="mx-auto w-12 h-12"
-              />
-              <p>{item.weather[0].main}</p>
-              <p>{item.main.temp}°C</p>
-            </div>
-          ))}
+      {forecastData.length > 0 && !error && (
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-5 gap-4">
+      {forecastData.map((item, index) => (
+        <div key={index} className="bg-white p-4 rounded shadow text-center">
+          <p className="font-semibold">{new Date(item.dt_txt).toLocaleDateString()}</p>
+          <img 
+            src={`https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`} 
+            alt="icon" 
+            className="mx-auto w-12 h-12"
+          />
+          <p>{item.weather[0].main}</p>
+          <p>{item.main.temp}°C</p>
+        </div>
+      ))}
         </div>
       )}
     </div> 

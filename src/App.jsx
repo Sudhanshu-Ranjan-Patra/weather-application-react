@@ -11,7 +11,7 @@ const App = () => {
   const[loading, setLoading] = useState(false);
   const[error, setError] = useState(null);
 
-  // State to hold forecast data
+  
   const [forecastData, setForecastData] = useState([]);
 
   // Detect Users Location using Geolocation
